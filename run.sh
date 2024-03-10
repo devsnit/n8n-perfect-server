@@ -6,11 +6,11 @@ set +a  # stop automatically exporting
 mkdir .n8n
 sudo chmod 777 -R .n8n
 # Ask the user if they want to use the -d option
-echo "Do you want to use the -d option? (y/n)"
+echo "Do you want to run this in debug mode? (y/n)"
 read use_d_option
 
 # Conditional logic based on the user's choice
-if [ "$use_d_option" = "y" ]; then
+if [ "$use_d_option" = "n" ]; then
   sudo docker compose down
   sudo docker compose up -d
 else
