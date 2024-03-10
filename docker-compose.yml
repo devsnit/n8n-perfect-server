@@ -7,7 +7,7 @@ x-shared: &shared
       - WEBHOOK_URL=${N8N_WEBHOOK_URL} # Change with your own URI
       - GENERIC_TIMEZONE=Europe/Bucharest
       - NODE_ENV=production
-      - N8N_ENCRYPTION_KEY=LnGMcaSProKXaI5PzXA0N8sLxJ3P2X17
+      - N8N_ENCRYPTION_KEY=LnGMcaSProKXSD443aI5PzXA0N8sLxJ3P2X17
       - NODE_OPTIONS=--max-old-space-size=2048
       - EXECUTIONS_MODE=queue
       - NODE_FUNCTION_ALLOW_EXTERNAL=*
