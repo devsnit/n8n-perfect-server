@@ -1,7 +1,9 @@
 
 # n8n Perfect Server Setup
 
-Welcome to the `n8n-perfect-server` repository! This project is designed to help you set up and run an n8n server, an extendable workflow automation tool, on an Ubuntu 22 server environment. Follow the instructions below to get started.
+Welcome to the `n8n-perfect-server` repository! This project is designed to help you set up and run an n8n server, an extendable workflow automation tool, on an Ubuntu 22 server environment. Our setup includes integration with Puppeteer, allowing for advanced web scraping and automation capabilities directly within your workflows, SOCKS5 proxy support with the HTTP request node, and Cheerio for fast, flexible, and lean server-side HTML parsing.
+
+Follow the instructions below to get started and harness the full power of n8n with enhanced capabilities.
 
 ## Prerequisites
 
