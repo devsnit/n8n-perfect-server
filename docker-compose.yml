@@ -1,0 +1,93 @@
+version: '3.3'
+
+x-shared: &shared
+#    image: n8nio/n8n:latest
+    image: n8n-puppeteer:${N8N_VERSION}
+    environment:
+      - WEBHOOK_URL=${N8N_WEBHOOK_URL} # Change with your own URI
+      - GENERIC_TIMEZONE=Europe/Bucharest
+      - NODE_ENV=production
+      - N8N_ENCRYPTION_KEY=LnGMcaSProKXaI5PzXA0N8sLxJ3P2X17
+      - NODE_OPTIONS=--max-old-space-size=2048
+      - EXECUTIONS_MODE=queue
+      - NODE_FUNCTION_ALLOW_EXTERNAL=*
+      - EXECUTIONS_QUEUE=redis
+      - QUEUE_HEALTH_CHECK_ACTIVE=true
+      - QUEUE_BULL_REDIS_HOST=n8n_redis
+      - QUEUE_BULL_REDIS_PORT=6379
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=n8n_pgdb
+      - DB_POSTGRESDB_DATABASE=n8n_db
+      - DB_POSTGRESDB_USER=n8n_db
+      - DB_POSTGRESDB_PASSWORD=n8n_pwd
+    depends_on:
+      - n8n_redis
+      - n8n_pgdb
+    links:
+      - n8n_pgdb
+      - n8n_redis
+    volumes:
+      - ./.n8n:/home/node/.n8n
+    networks:
+      - n8n_external
+      - n8n_network
+    restart: unless-stopped
+
+services:
+  n8n_pgdb:
+    image: postgres:15
+    environment:
+      - POSTGRES_SHARED_BUFFERS=2GB
+      - POSTGRES_MAINTENANCE_WORK_MEM=1GB
+      - POSTGRES_EFFECTIVE_CACHE_SIZE=2GB
+      - POSTGRES_WORK_MEM=64MB
+      - POSTGRES_MAX_PARALLEL_WORKERS=10
+      - POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER=5
+      - POSTGRES_DB=n8n_db
+      - POSTGRES_USER=n8n_db
+      - POSTGRES_PASSWORD=n8n_pwd
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    networks:
+      - n8n_network
+    restart: always
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -h localhost -U n8n_db -d n8n_db']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  n8n_app:
+    <<: *shared
+    ports:
+      - 5678:5678
+
+  n8n_app_worker:
+    <<: *shared
+    command: worker  --concurrency=10
+    deploy:
+      replicas: 8
+    depends_on:
+      - n8n_app
+
+  n8n_app_webhook:
+    <<: *shared
+    command: webhook
+    depends_on:
+      - n8n_app
+
+  n8n_redis:
+    image: redis:6-alpine
+    volumes:
+      - ./redis-data:/redis-data
+    networks:
+      - n8n_external
+      - n8n_network
+    restart: always
+
+
+networks:
+  n8n_external:
+    external: true
+  n8n_network:
+    driver: bridge
