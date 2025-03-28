@@ -1,10 +1,7 @@
-version: '3.3'
-
 x-shared: &shared
-#    image: n8nio/n8n:latest
     image: n8n-puppeteer:${N8N_VERSION}
     environment:
-      - WEBHOOK_URL=${N8N_WEBHOOK_URL} # Change with your own URI
+      - WEBHOOK_URL=${N8N_WEBHOOK_URL}
       - GENERIC_TIMEZONE=Europe/Bucharest
       - NODE_ENV=production
       - N8N_ENCRYPTION_KEY=LnGMcaSProKXaI5PzXA0N8sLxJ3P2X17
