@@ -1,6 +1,5 @@
-ARG N8N_VERSION
-
-FROM n8nio/n8n:$N8N_VERSION
+ARG N8N_VERSION=latest
+FROM n8nio/n8n:${N8N_VERSION}
 
 RUN if [ -z "$N8N_VERSION" ] ; then echo "The N8N_VERSION argument is missing!" ; exit 1; fi
 
@@ -28,7 +27,7 @@ RUN apk update \
         xauth \
         xterm \
         mesa-gles \
-        libstdc++ 
+        libstdc++
 
 # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \

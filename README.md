@@ -1,97 +1,95 @@
+# 🚀 n8n Perfect Server Setup
 
-# n8n Perfect Server Setup
+Welcome to the **n8n-perfect-server** repository!  
+This project helps you easily set up and run an [n8n](https://n8n.io) server — an extendable workflow automation tool — with Puppeteer integration, optimized for an Ubuntu 22.04 environment.
 
-Welcome to the n8n-perfect-server repository! This project is designed to help you set up and run an n8n server, an extendable workflow automation tool, on an Ubuntu 22 server environment. Our setup includes integration with Puppeteer and Gotenberg (an HTML to PDF API).
+Get ready to harness the full power of n8n with custom automation, PDF generation, and more!
 
-Follow the instructions below to get started and harness the full power of n8n with enhanced capabilities.
+---
 
-## Prerequisites
+## 📦 Prerequisites
 
-Before you begin, ensure that you have:
+Before you begin, make sure you have:
 
-- A machine running Ubuntu 22 (server edition recommended).
-- Basic knowledge of terminal and command-line operations.
-- Git installed on your machine. If not, you can install it using sudo apt-get install git.
+- ✅ Ubuntu 22.04 LTS (server recommended)
+- ✅ Basic command-line knowledge
+- ✅ Git installed (`sudo apt-get install git` if not already installed)
 
-## Installation
+---
 
-To set up the n8n server, follow these steps:
+## ⚙️ Installation
 
-### 1. Clone the Repository
+Follow the steps below to install and run your n8n instance.
 
-First, clone this repository to your local machine. Open your terminal and run the following command:
+### 1. Clone This Repository
 
 ```bash
 git clone https://github.com/devsnit/n8n-perfect-server.git
-```
-
-Navigate into the project directory:
-
-```bash
 cd n8n-perfect-server
 ```
 
-### 2. Configure Environment Variables
+---
 
-Before running the build script, you need to configure the environment variables in the .env file. Update the N8N_VERSION to latest to use the latest version of n8n. For the N8N_WEBHOOK_URL, use your hostname without the http:// prefix.
+### 2. Run the Setup Script
 
-### 3. Run Build Script
+To set everything up, simply run the `build.sh` script. This script will:
 
-Before starting the server, you need to run the build script. This script prepares your server environment for n8n. Make sure the script is executable; if not, you can make it executable by running:
+- Prompt you to choose the n8n version to install (e.g. `latest`, `1.39.1`, etc.)
+- Ask for the **Webhook URL**, which is used for handling **webhook callbacks** (e.g. from external tools and services).
+  > ⚠️ This is **not the URL of your n8n instance UI**, but the **public URL that external services will call** when they trigger webhooks in your workflows.  
+  > Example: `https://webhooks.example.com`
+
+Make the script executable and run it:
 
 ```bash
 chmod +x build.sh
-```
-
-After ensuring it is executable, run the build script:
-
-```bash
 ./build.sh
 ```
 
-### 4. Run the Server
+This will install Docker, build the n8n image, and configure everything automatically.
 
-Once the build process is complete, start the n8n server by executing the run script. Again, ensure the script is executable:
+---
+
+### 3. Start the n8n Server
+
+Once the build completes, start the server with:
 
 ```bash
 chmod +x run.sh
-```
-
-Then, start the server:
-
-```bash
 ./run.sh
 ```
 
-## Usage
+---
 
-After running the run.sh script, your n8n server will be up and running. You can access the n8n web interface by navigating to http://localhost:5678 on your web browser (replace localhost with your server's IP address if accessing remotely).
+## 🌐 Accessing the n8n UI
 
-## N8N DEMO NODES FOR GOTENBERG:
+After starting the server, open your browser and navigate to:
+
+```
+http://<your-server-ip>:5678
+```
+
+Replace `<your-server-ip>` with your server’s IP address or domain name.
+
+---
+
+## 🧪 Example: n8n Puppeteer to Gotenberg (HTML to PDF)
+
+This is an example workflow using Puppeteer and Gotenberg for HTML to PDF conversion:
 
 ```json
 {
-  "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "1e3fd810253bd4f201696deceaaa9dd99e894764e45070b3e7382ec61e702ba2"
-  },
   "nodes": [
     {
       "parameters": {
         "operation": "toText",
         "sourceProperty": "html",
-        "options": {
-          "fileName": "index.html"
-        }
+        "options": { "fileName": "index.html" }
       },
-      "id": "98edce69-a2a7-4f04-8f67-35c43aa14c55",
       "name": "convertToHTML",
       "type": "n8n-nodes-base.convertToFile",
-      "typeVersion": 1.1,
-      "position": [
-        600,
-        220
-      ]
+      "typeVersion": 1,
+      "position": [600, 220]
     },
     {
       "parameters": {
@@ -107,48 +105,38 @@ After running the run.sh script, your n8n server will be up and running. You can
               "inputDataFieldName": "data"
             }
           ]
-        },
-        "options": {}
+        }
       },
-      "id": "ba4bda33-b549-480d-b8d8-d1d10885c9e8",
       "name": "HTTP Request",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
-      "position": [
-        760,
-        220
-      ]
+      "position": [760, 220]
     }
   ],
   "connections": {
     "convertToHTML": {
-      "main": [
-        [
-          {
-            "node": "HTTP Request",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[ { "node": "HTTP Request", "type": "main", "index": 0 } ]]
     }
-  },
-  "pinData": {}
+  }
 }
 ```
 
-## Contributing
+---
 
-Contributions to the n8n-perfect-server project are welcome! If you have suggestions, improvements, or bug reports, please feel free to open an issue or submit a pull request.
+## 🤝 Contributing
 
-## License
+Pull requests are welcome!  
+If you have improvements, ideas, or bug fixes, feel free to open an issue or contribute directly.
 
-MIT License
+---
 
-Copyright (c) 2024 Alexandru Munteanu ([DEVSNIT](https://devsnit.com/))
+## 📄 License
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+**MIT License**
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+© 2024 [Alexandru Munteanu](https://devsnit.com/)  
+Feel free to use, share, and modify this project. See `LICENSE` for details.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+---
+
+> Built with 💻 by DEVSNIT • https://devsnit.com
