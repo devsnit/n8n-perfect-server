@@ -5,6 +5,7 @@ x-shared: &shared
       - GENERIC_TIMEZONE=Europe/Bucharest
       - NODE_ENV=production
       - N8N_ENCRYPTION_KEY=LnGMcaSProKXaI5PzXA0N8sLxJ3P2X17
+      - N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE=true
       - NODE_OPTIONS=--max-old-space-size=2048
       - EXECUTIONS_MODE=queue
       - NODE_FUNCTION_ALLOW_EXTERNAL=*
