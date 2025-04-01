@@ -101,16 +101,28 @@ else
     echo -e "${GREEN}✅ Docker network 'n8n_external' already exists.${RESET}"
 fi
 
+# === Section: Pull Latest Base Image ===
+print_section_header "📥 Pulling Latest Base Image"
+
+echo -e "${BLUE}📦 Pulling base image n8nio/n8n:$N8N_VERSION...${RESET}"
+docker pull n8nio/n8n:$N8N_VERSION
+
 # === Section: Build Docker Image ===
 print_section_header "🛠️  Build Custom n8n Image"
 
-echo -e "${BLUE}⏳ Building with BuildKit enabled...${RESET}"
-DOCKER_BUILDKIT=1 docker build --build-arg N8N_VERSION=$N8N_VERSION -t n8n-puppeteer:$N8N_VERSION -f Dockerfile .
+echo -e "${BLUE}⏳ Building with BuildKit and forced base image pull...${RESET}"
+DOCKER_BUILDKIT=1 docker build --pull --build-arg N8N_VERSION=$N8N_VERSION -t n8n-puppeteer:$N8N_VERSION -f Dockerfile .
 
 if [ $? -ne 0 ]; then
     echo -e "\n${YELLOW}❌ Build failed. Please ensure Docker BuildKit is supported on your system.${RESET}"
     exit 1
 fi
+
+# === Section: Cleanup ===
+print_section_header "🧹 Cleaning Up Unused Docker Images"
+
+echo -e "${BLUE}🗑️ Pruning unused Docker images (dangling only)...${RESET}"
+docker image prune --filter "dangling=true" -f
 
 echo ""
 echo -e "${GREEN}✅ All done! n8n version ${BOLD}$N8N_VERSION${RESET}${GREEN} is ready to go 🚀${RESET}"
