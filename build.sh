@@ -68,6 +68,13 @@ if [ ! -z "$input_qdrant_api_key" ]; then
     QDRANT_API_KEY=$input_qdrant_api_key
 fi
 
+echo ""
+echo -e "🕒 ${BOLD}Max Execution History Age (in hours):${RESET} ${GREEN}$EXECUTIONS_DATA_MAX_AGE${RESET}"
+read -p "➡️  Press Enter to keep or enter a new value (e.g. 336 = 14 days): " input_exec_age
+if [ ! -z "$input_exec_age" ]; then
+    EXECUTIONS_DATA_MAX_AGE=$input_exec_age
+fi
+
 # === Update .env ===
 print_section_header "📝 Updating .env File"
 
@@ -77,6 +84,8 @@ sed -i "s/^DB_POSTGRESDB_DATABASE=.*/DB_POSTGRESDB_DATABASE=$DB_POSTGRESDB_DATAB
 sed -i "s/^DB_POSTGRESDB_USER=.*/DB_POSTGRESDB_USER=$DB_POSTGRESDB_USER/" .env
 sed -i "s/^DB_POSTGRESDB_PASSWORD=.*/DB_POSTGRESDB_PASSWORD=$DB_POSTGRESDB_PASSWORD/" .env
 sed -i "s/^QDRANT_API_KEY=.*/QDRANT_API_KEY=$QDRANT_API_KEY/" .env
+sed -i "s/^EXECUTIONS_DATA_MAX_AGE=.*/EXECUTIONS_DATA_MAX_AGE=$EXECUTIONS_DATA_MAX_AGE/" .env
+
 
 echo -e "${GREEN}✅ .env file updated successfully.${RESET}"
 
