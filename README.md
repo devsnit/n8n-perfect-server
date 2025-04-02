@@ -1,9 +1,9 @@
 # 🚀 n8n Perfect Server Setup
 
 Welcome to the **n8n-perfect-server** repository!  
-This project helps you easily set up and run an [n8n](https://n8n.io) server — an extendable workflow automation tool — with Puppeteer integration, optimized for an Ubuntu 22.04 environment.
+This project helps you easily set up and run an [n8n](https://n8n.io) server — an extendable workflow automation tool — with Puppeteer integration, PostgreSQL, Redis, Gotenberg, and optional Qdrant vector search. It's optimized for an Ubuntu 22.04 environment.
 
-Get ready to harness the full power of n8n with custom automation, PDF generation, and more!
+Get ready to harness the full power of n8n with custom automation, PDF generation, execution history control, secure vector database access, and more!
 
 ---
 
@@ -35,9 +35,11 @@ cd n8n-perfect-server
 To set everything up, simply run the `build.sh` script. This script will:
 
 - Prompt you to choose the n8n version to install (e.g. `latest`, `1.39.1`, etc.)
-- Ask for the **Webhook URL**, which is used for handling **webhook callbacks** (e.g. from external tools and services).
-  > ⚠️ This is **not the URL of your n8n instance UI**, but the **public URL that external services will call** when they trigger webhooks in your workflows.  
-  > Example: `https://webhooks.example.com`
+- Ask for the **Webhook URL**, used for handling webhook callbacks
+- Prompt for PostgreSQL credentials (database, user, password)
+- Prompt for a Qdrant API key (optional but recommended for security)
+- Automatically write all chosen settings into the `.env` file
+- Reinstall Docker (if needed) and create the Docker image and network
 
 Make the script executable and run it:
 
@@ -45,8 +47,6 @@ Make the script executable and run it:
 chmod +x build.sh
 ./build.sh
 ```
-
-This will install Docker, build the n8n image, and configure everything automatically.
 
 ---
 
@@ -59,6 +59,8 @@ chmod +x run.sh
 ./run.sh
 ```
 
+You will be asked whether to run in debug mode (foreground logs) or detached mode.
+
 ---
 
 ## 🌐 Accessing the n8n UI
@@ -70,6 +72,39 @@ http://<your-server-ip>:5678
 ```
 
 Replace `<your-server-ip>` with your server’s IP address or domain name.
+
+---
+
+## 📉 Execution History Configuration
+
+n8n is configured to store execution history, which you can adjust via the `.env` file:
+
+```dotenv
+EXECUTIONS_DATA_SAVE_ON_SUCCESS=true      # Save on successful workflow runs
+EXECUTIONS_DATA_SAVE_ON_ERROR=true        # Save on errors
+EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS=true # Save manual executions
+EXECUTIONS_DATA_PRUNE=true                # Automatically delete old data
+EXECUTIONS_DATA_MAX_AGE=336               # Max age in hours (336 = 14 days)
+```
+
+---
+
+## 🔐 Qdrant Vector Search (Optional)
+
+This server includes a running instance of [Qdrant](https://qdrant.tech), a vector search engine. It's secured with an API key.
+
+To connect, include the following HTTP header:
+
+```http
+Authorization: ApiKey YOUR_API_KEY
+```
+
+The API key is set during the `build.sh` prompt and stored in `.env` as `QDRANT_API_KEY`.
+
+Qdrant UI / API is available at:
+```
+http://<your-server-ip>:6333
+```
 
 ---
 

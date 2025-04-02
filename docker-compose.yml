@@ -1,35 +1,40 @@
 x-shared: &shared
-    image: n8n-puppeteer:${N8N_VERSION}
-    environment:
-      - WEBHOOK_URL=${N8N_WEBHOOK_URL}
-      - GENERIC_TIMEZONE=Europe/Bucharest
-      - NODE_ENV=production
-      - N8N_ENCRYPTION_KEY=LnGMcaSProKXaI5PzXA0N8sLxJ3P2X17
-      - N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE=true
-      - NODE_OPTIONS=--max-old-space-size=2048
-      - EXECUTIONS_MODE=queue
-      - NODE_FUNCTION_ALLOW_EXTERNAL=*
-      - EXECUTIONS_QUEUE=redis
-      - QUEUE_HEALTH_CHECK_ACTIVE=true
-      - QUEUE_BULL_REDIS_HOST=n8n_redis
-      - QUEUE_BULL_REDIS_PORT=6379
-      - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_HOST=n8n_pgdb
-      - DB_POSTGRESDB_DATABASE=n8n_db
-      - DB_POSTGRESDB_USER=n8n_db
-      - DB_POSTGRESDB_PASSWORD=n8n_pwd
-    depends_on:
-      - n8n_redis
-      - n8n_pgdb
-    links:
-      - n8n_pgdb
-      - n8n_redis
-    volumes:
-      - ./.n8n:/home/node/.n8n
-    networks:
-      - n8n_external
-      - n8n_network
-    restart: unless-stopped
+  image: n8n-puppeteer:${N8N_VERSION}
+  environment:
+    - WEBHOOK_URL=${N8N_WEBHOOK_URL}
+    - GENERIC_TIMEZONE=Europe/Bucharest
+    - NODE_ENV=production
+    - N8N_ENCRYPTION_KEY=LnGMcaSProKXaI5PzXA0N8sLxJ3P2X17
+    - N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE=true
+    - NODE_OPTIONS=--max-old-space-size=2048
+    - EXECUTIONS_MODE=queue
+    - NODE_FUNCTION_ALLOW_EXTERNAL=*
+    - EXECUTIONS_QUEUE=redis
+    - QUEUE_HEALTH_CHECK_ACTIVE=true
+    - QUEUE_BULL_REDIS_HOST=n8n_redis
+    - QUEUE_BULL_REDIS_PORT=6379
+    - DB_TYPE=postgresdb
+    - DB_POSTGRESDB_HOST=n8n_pgdb
+    - DB_POSTGRESDB_DATABASE=${DB_POSTGRESDB_DATABASE}
+    - DB_POSTGRESDB_USER=${DB_POSTGRESDB_USER}
+    - DB_POSTGRESDB_PASSWORD=${DB_POSTGRESDB_PASSWORD}
+    - EXECUTIONS_DATA_SAVE_ON_SUCCESS=${EXECUTIONS_DATA_SAVE_ON_SUCCESS}
+    - EXECUTIONS_DATA_SAVE_ON_ERROR=${EXECUTIONS_DATA_SAVE_ON_ERROR}
+    - EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS=${EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS}
+    - EXECUTIONS_DATA_PRUNE=${EXECUTIONS_DATA_PRUNE}
+    - EXECUTIONS_DATA_MAX_AGE=${EXECUTIONS_DATA_MAX_AGE}
+  depends_on:
+    - n8n_redis
+    - n8n_pgdb
+  links:
+    - n8n_pgdb
+    - n8n_redis
+  volumes:
+    - ./.n8n:/home/node/.n8n
+  networks:
+    - n8n_external
+    - n8n_network
+  restart: unless-stopped
 
 services:
   n8n_pgdb:
@@ -41,19 +46,21 @@ services:
       - POSTGRES_WORK_MEM=64MB
       - POSTGRES_MAX_PARALLEL_WORKERS=10
       - POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER=5
-      - POSTGRES_DB=n8n_db
-      - POSTGRES_USER=n8n_db
-      - POSTGRES_PASSWORD=n8n_pwd
+      - POSTGRES_DB=${DB_POSTGRESDB_DATABASE}
+      - POSTGRES_USER=${DB_POSTGRESDB_USER}
+      - POSTGRES_PASSWORD=${DB_POSTGRESDB_PASSWORD}
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
     networks:
       - n8n_network
     restart: always
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -h localhost -U n8n_db -d n8n_db']
+      test: ['CMD-SHELL', 'pg_isready -h localhost -U ${DB_POSTGRESDB_USER} -d ${DB_POSTGRESDB_DATABASE}']
       interval: 5s
       timeout: 5s
       retries: 10
+    ports:
+      - "5432:5432"
 
   n8n_app:
     <<: *shared
@@ -62,7 +69,7 @@ services:
 
   n8n_app_worker:
     <<: *shared
-    command: worker  --concurrency=10
+    command: worker --concurrency=10
     deploy:
       replicas: 8
     depends_on:
@@ -88,9 +95,25 @@ services:
     networks:
       - n8n_network
 
+  qdrant:
+    image: qdrant/qdrant
+    hostname: qdrant
+    container_name: qdrant
+    networks:
+      - n8n_network
+    restart: unless-stopped
+    ports:
+      - 6333:6333
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY}
 
 networks:
   n8n_external:
     external: true
   n8n_network:
     driver: bridge
+
+volumes:
+  qdrant_storage:
