@@ -9,159 +9,261 @@ BLUE="\e[34m"
 GRAY="\e[90m"
 
 print_section_header() {
-    echo -e "\n${GRAY}============================================================${RESET}"
-    echo -e "${BLUE}${BOLD}$1${RESET}"
-    echo -e "${GRAY}============================================================${RESET}"
+  echo -e "\n${GRAY}============================================================${RESET}"
+  echo -e "${BLUE}${BOLD}$1${RESET}"
+  echo -e "${GRAY}============================================================${RESET}"
 }
 
-# === Load .env ===
-if [ -f .env ]; then
+print_info() {
+  echo -e "${BLUE}ℹ️  $1${RESET}"
+}
+
+print_success() {
+  echo -e "${GREEN}✅ $1${RESET}"
+}
+
+print_warning() {
+  echo -e "${YELLOW}⚠️  $1${RESET}"
+}
+
+load_env() {
+  print_section_header "🌍 Loading Environment Variables"
+  if [ -f .env ]; then
     set -a
-    source ./.env
+    source .env
     set +a
-else
-    echo -e "${YELLOW}❌ .env file not found. Please create one with required variables.${RESET}"
+    print_success ".env variables loaded."
+  else
+    print_warning ".env file not found. Exiting."
     exit 1
-fi
+  fi
+}
 
-# === Section: Configuration Setup ===
-print_section_header "🛠️  Configuration Setup"
+configure_variables() {
+  print_section_header "⚙️ Configuration Setup"
 
-echo -e "📌 ${BOLD}Current N8N Version:${RESET} ${GREEN}$N8N_VERSION${RESET}"
-read -p "➡️  Press Enter to keep or type a new version: " input_version
-if [ ! -z "$input_version" ]; then
-    N8N_VERSION=$input_version
-fi
+  read -p "➡️  N8N Version [$N8N_VERSION]: " input_version
+  [[ -n $input_version ]] && N8N_VERSION=$input_version
 
-echo ""
-echo -e "🌐 ${BOLD}Current Webhook URL:${RESET} ${GREEN}$N8N_WEBHOOK_URL${RESET}"
-read -p "➡️  Press Enter to keep or enter a new Webhook URL: " input_host
-if [ ! -z "$input_host" ]; then
-    N8N_WEBHOOK_URL=$input_host
-fi
+  read -p "➡️  Webhook URL [$N8N_WEBHOOK_URL]: " input_webhook
+  [[ -n $input_webhook ]] && N8N_WEBHOOK_URL=$input_webhook
 
-echo ""
-echo -e "🗃️  ${BOLD}PostgreSQL Database:${RESET} ${GREEN}$DB_POSTGRESDB_DATABASE${RESET}"
-read -p "➡️  Press Enter to keep or enter a new database name: " input_db_name
-if [ ! -z "$input_db_name" ]; then
-    DB_POSTGRESDB_DATABASE=$input_db_name
-fi
+  read -p "➡️  PostgreSQL DB Name [$DB_POSTGRESDB_DATABASE]: " input_db
+  [[ -n $input_db ]] && DB_POSTGRESDB_DATABASE=$input_db
 
-echo ""
-echo -e "👤 ${BOLD}PostgreSQL Username:${RESET} ${GREEN}$DB_POSTGRESDB_USER${RESET}"
-read -p "➡️  Press Enter to keep or enter a new username: " input_db_user
-if [ ! -z "$input_db_user" ]; then
-    DB_POSTGRESDB_USER=$input_db_user
-fi
+  read -p "➡️  PostgreSQL User [$DB_POSTGRESDB_USER]: " input_user
+  [[ -n $input_user ]] && DB_POSTGRESDB_USER=$input_user
 
-echo ""
-echo -e "🔒 ${BOLD}PostgreSQL Password:${RESET} ${GREEN}$DB_POSTGRESDB_PASSWORD${RESET}"
-read -p "➡️  Press Enter to keep or enter a new password: " input_db_password
-if [ ! -z "$input_db_password" ]; then
-    DB_POSTGRESDB_PASSWORD=$input_db_password
-fi
+  read -p "➡️  PostgreSQL Password [$DB_POSTGRESDB_PASSWORD]: " input_pwd
+  [[ -n $input_pwd ]] && DB_POSTGRESDB_PASSWORD=$input_pwd
 
-echo ""
-echo -e "🔐 ${BOLD}Qdrant API Key:${RESET} ${GREEN}$QDRANT_API_KEY${RESET}"
-read -p "➡️  Press Enter to keep or enter a new API key: " input_qdrant_api_key
-if [ ! -z "$input_qdrant_api_key" ]; then
-    QDRANT_API_KEY=$input_qdrant_api_key
-fi
+  read -p "➡️  Qdrant API Key [$QDRANT_API_KEY]: " input_qdrant
+  [[ -n $input_qdrant ]] && QDRANT_API_KEY=$input_qdrant
 
-echo ""
-echo -e "🕒 ${BOLD}Max Execution History Age (in hours):${RESET} ${GREEN}$EXECUTIONS_DATA_MAX_AGE${RESET}"
-read -p "➡️  Press Enter to keep or enter a new value (e.g. 336 = 14 days): " input_exec_age
-if [ ! -z "$input_exec_age" ]; then
-    EXECUTIONS_DATA_MAX_AGE=$input_exec_age
-fi
+  read -p "➡️  Max execution age in hours [$EXECUTIONS_DATA_MAX_AGE]: " input_age
+  [[ -n $input_age ]] && EXECUTIONS_DATA_MAX_AGE=$input_age
 
-# === Update .env ===
-print_section_header "📝 Updating .env File"
+  read -p "➡️  Number of n8n workers [$N8N_WORKER_REPLICAS]: " input_workers
+  [[ -n $input_workers ]] && N8N_WORKER_REPLICAS=$input_workers
 
-sed -i "s/^N8N_VERSION=.*/N8N_VERSION=$N8N_VERSION/" .env
-sed -i "s|^N8N_WEBHOOK_URL=.*|N8N_WEBHOOK_URL=$N8N_WEBHOOK_URL|" .env
-sed -i "s/^DB_POSTGRESDB_DATABASE=.*/DB_POSTGRESDB_DATABASE=$DB_POSTGRESDB_DATABASE/" .env
-sed -i "s/^DB_POSTGRESDB_USER=.*/DB_POSTGRESDB_USER=$DB_POSTGRESDB_USER/" .env
-sed -i "s/^DB_POSTGRESDB_PASSWORD=.*/DB_POSTGRESDB_PASSWORD=$DB_POSTGRESDB_PASSWORD/" .env
-sed -i "s/^QDRANT_API_KEY=.*/QDRANT_API_KEY=$QDRANT_API_KEY/" .env
-sed -i "s/^EXECUTIONS_DATA_MAX_AGE=.*/EXECUTIONS_DATA_MAX_AGE=$EXECUTIONS_DATA_MAX_AGE/" .env
+  read -p "➡️  Enable NGINX Proxy Manager? (true/false) [$ENABLE_NGINX_PROXY_MANAGER]: " input_npm
+  [[ -n $input_npm ]] && ENABLE_NGINX_PROXY_MANAGER=$input_npm
 
+  read -p "➡️  Enable Qdrant? (true/false) [$ENABLE_QDRANT]: " input_qdrant_toggle
+  [[ -n $input_qdrant_toggle ]] && ENABLE_QDRANT=$input_qdrant_toggle
+}
 
-echo -e "${GREEN}✅ .env file updated successfully.${RESET}"
+update_env_file() {
+  print_section_header "📝 Updating .env File"
 
-# === Docker Installation ===
-print_section_header "🐳 Docker Installation (Optional)"
+  sed -i "s/^N8N_VERSION=.*/N8N_VERSION=$N8N_VERSION/" .env
+  sed -i "s|^N8N_WEBHOOK_URL=.*|N8N_WEBHOOK_URL=$N8N_WEBHOOK_URL|" .env
+  sed -i "s/^DB_POSTGRESDB_DATABASE=.*/DB_POSTGRESDB_DATABASE=$DB_POSTGRESDB_DATABASE/" .env
+  sed -i "s/^DB_POSTGRESDB_USER=.*/DB_POSTGRESDB_USER=$DB_POSTGRESDB_USER/" .env
+  sed -i "s/^DB_POSTGRESDB_PASSWORD=.*/DB_POSTGRESDB_PASSWORD=$DB_POSTGRESDB_PASSWORD/" .env
+  sed -i "s/^QDRANT_API_KEY=.*/QDRANT_API_KEY=$QDRANT_API_KEY/" .env
+  sed -i "s/^EXECUTIONS_DATA_MAX_AGE=.*/EXECUTIONS_DATA_MAX_AGE=$EXECUTIONS_DATA_MAX_AGE/" .env
+  sed -i "s/^N8N_WORKER_REPLICAS=.*/N8N_WORKER_REPLICAS=$N8N_WORKER_REPLICAS/" .env
+  sed -i "s/^ENABLE_NGINX_PROXY_MANAGER=.*/ENABLE_NGINX_PROXY_MANAGER=$ENABLE_NGINX_PROXY_MANAGER/" .env
+  sed -i "s/^ENABLE_QDRANT=.*/ENABLE_QDRANT=$ENABLE_QDRANT/" .env
 
-reinstall=false
-if docker --version &> /dev/null; then
-    echo -e "✔️  Docker is already installed."
-    read -p "➡️  Do you want to reinstall Docker with the latest official setup? (y/N): " answer
-    answer=${answer,,}
-    if [[ "$answer" == "y" || "$answer" == "yes" ]]; then
-        reinstall=true
-    fi
-else
+  print_success ".env updated."
+}
+
+inject_nginx_proxy_to_compose() {
+  print_section_header "🌐 Handling NGINX Proxy Manager Section"
+
+  if [[ "$ENABLE_NGINX_PROXY_MANAGER" == "true" ]]; then
+    print_info "NGINX Proxy Manager is enabled. Injecting service..."
+
+    npm_services=$(cat <<EOF
+  npm_app:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '81:81'
+    environment:
+      DB_POSTGRES_HOST: 'npm_pgdb'
+      DB_POSTGRES_PORT: '5432'
+      DB_POSTGRES_USER: 'npm'
+      DB_POSTGRES_PASSWORD: 'npmpass'
+      DB_POSTGRES_NAME: 'npm'
+    volumes:
+      - ./npm_data:/data
+      - ./letsencrypt:/etc/letsencrypt
+    depends_on:
+      - npm_pgdb
+
+  npm_pgdb:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: 'npm'
+      POSTGRES_PASSWORD: 'npmpass'
+      POSTGRES_DB: 'npm'
+    volumes:
+      - ./npm_pgdata:/var/lib/postgresql/data
+EOF
+)
+
+    awk -v services="$npm_services" '
+      /# === NGINX_PROXY_MANAGER_SERVICES_START ===/ {
+        print;
+        print services;
+        skip=1
+        next
+      }
+      /# === NGINX_PROXY_MANAGER_SERVICES_END ===/ {
+        skip=0
+      }
+      !skip
+    ' docker-compose.yml > docker-compose.tmp.yml && mv docker-compose.tmp.yml docker-compose.yml
+
+    print_success "NGINX Proxy Manager section injected."
+  else
+    print_info "NGINX Proxy Manager is disabled. Removing any existing config..."
+    awk '
+      /# === NGINX_PROXY_MANAGER_SERVICES_START ===/ { print; skip=1; next }
+      /# === NGINX_PROXY_MANAGER_SERVICES_END ===/ { skip=0 }
+      !skip
+    ' docker-compose.yml > docker-compose.tmp.yml && mv docker-compose.tmp.yml docker-compose.yml
+    print_success "NGINX Proxy Manager section removed if it existed."
+  fi
+}
+
+inject_qdrant_to_compose() {
+  print_section_header "🧠 Handling Qdrant Section"
+
+  if [[ "$ENABLE_QDRANT" == "true" ]]; then
+    print_info "Qdrant is enabled. Injecting service..."
+
+    qdrant_service=$(cat <<EOF
+  qdrant:
+    image: qdrant/qdrant
+    hostname: qdrant
+    container_name: qdrant
+    networks:
+      - n8n_network
+    restart: unless-stopped
+    ports:
+      - 6333:6333
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__API_KEY=\${QDRANT_API_KEY}
+EOF
+)
+
+    awk -v services="$qdrant_service" '
+      /# === QDRANT_SERVICES_START ===/ {
+        print;
+        print services;
+        skip=1
+        next
+      }
+      /# === QDRANT_SERVICES_END ===/ {
+        skip=0
+      }
+      !skip
+    ' docker-compose.yml > docker-compose.tmp.yml && mv docker-compose.tmp.yml docker-compose.yml
+
+    print_success "Qdrant section injected."
+  else
+    print_info "Qdrant is disabled. Removing any existing config..."
+    awk '
+      /# === QDRANT_SERVICES_START ===/ { print; skip=1; next }
+      /# === QDRANT_SERVICES_END ===/ { skip=0 }
+      !skip
+    ' docker-compose.yml > docker-compose.tmp.yml && mv docker-compose.tmp.yml docker-compose.yml
+    print_success "Qdrant section removed if it existed."
+  fi
+}
+
+install_docker_if_needed() {
+  print_section_header "🐳 Checking Docker"
+
+  reinstall=false
+  if docker --version &> /dev/null; then
+    read -p "➡️  Reinstall Docker with the latest version? (y/N): " ans
+    ans=${ans,,}
+    [[ "$ans" == "y" ]] && reinstall=true
+  else
     reinstall=true
-fi
+  fi
 
-if [ "$reinstall" = true ]; then
-    echo "🧹 Removing old Docker packages..."
-    for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do 
-        sudo apt-get remove -y $pkg 
+  if $reinstall; then
+    echo "🧹 Removing old Docker..."
+    for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do
+      sudo apt-get remove -y $pkg
     done
-
-    echo "🧼 Cleaning up old Docker sources..."
     sudo rm -f /etc/apt/sources.list.d/docker.list
     sudo rm -f /etc/apt/keyrings/docker.asc
-    sudo rm -f /etc/apt/keyrings/plesk-ext-docker.gpg
-    sudo rm -rf ~/.docker/cli-plugins /root/.docker/cli-plugins
 
-    echo "🔑 Importing Docker GPG key..."
+    echo "🔑 Adding Docker repo and installing..."
     sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7EA0A9C3F273FCD8
-
-    echo "➕ Adding Docker APT repository..."
     echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu noble stable" | \
-        sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-    echo "🔄 Updating package index..."
+      sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     sudo apt-get update
-
-    echo "🚀 Installing Docker Engine and plugins..."
     sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-    echo -e "${GREEN}✅ Docker installed successfully.${RESET}"
-fi
+    print_success "Docker installed."
+  else
+    print_info "Docker already present."
+  fi
+}
 
-# === Docker Network ===
-print_section_header "🌐 Docker Network Setup"
-
-if ! sudo docker network ls | grep -qw n8n_external; then
-    echo "➕ Creating Docker network 'n8n_external'..."
+setup_docker_network() {
+  print_section_header "🌐 Setting up Docker Network"
+  if ! sudo docker network ls | grep -qw n8n_external; then
     sudo docker network create n8n_external
-else
-    echo -e "${GREEN}✅ Docker network 'n8n_external' already exists.${RESET}"
-fi
+    print_success "Created Docker network n8n_external."
+  else
+    print_info "Docker network n8n_external already exists."
+  fi
+}
 
-# === Pull Base Image ===
-print_section_header "📥 Pulling Base Image"
-
-echo -e "${BLUE}📦 Pulling n8nio/n8n:$N8N_VERSION...${RESET}"
-docker pull n8nio/n8n:$N8N_VERSION
-
-# === Build Custom Image ===
-print_section_header "🛠️  Building Custom n8n Docker Image"
-
-DOCKER_BUILDKIT=1 docker build --pull --build-arg N8N_VERSION=$N8N_VERSION -t n8n-puppeteer:$N8N_VERSION -f Dockerfile .
-
-if [ $? -ne 0 ]; then
-    echo -e "\n${YELLOW}❌ Build failed. Please ensure Docker BuildKit is supported.${RESET}"
+pull_and_build_n8n() {
+  print_section_header "📦 Pull & Build n8n Image"
+  docker pull n8nio/n8n:$N8N_VERSION
+  DOCKER_BUILDKIT=1 docker build --pull --build-arg N8N_VERSION=$N8N_VERSION -t n8n-puppeteer:$N8N_VERSION -f Dockerfile .
+  if [ $? -ne 0 ]; then
+    print_warning "Build failed. Make sure Docker BuildKit is enabled."
     exit 1
-fi
+  fi
+  docker image prune --filter "dangling=true" -f
+  print_success "n8n image built: n8n-puppeteer:$N8N_VERSION"
+}
 
-# === Cleanup ===
-print_section_header "🧹 Cleaning Up Unused Docker Images"
+# === MAIN SCRIPT ===
 
-docker image prune --filter "dangling=true" -f
+load_env
+configure_variables
+update_env_file
+inject_nginx_proxy_to_compose
+inject_qdrant_to_compose
+install_docker_if_needed
+setup_docker_network
+pull_and_build_n8n
 
-echo ""
-echo -e "${GREEN}✅ All done! n8n version ${BOLD}$N8N_VERSION${RESET}${GREEN} is ready to go 🚀${RESET}"
+print_success "🎉 All done! Ready to run docker compose."

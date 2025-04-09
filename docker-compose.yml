@@ -74,9 +74,7 @@ services:
     <<: *shared
     command: worker --concurrency=10
     deploy:
-      replicas: 8
-    depends_on:
-      - n8n_app
+      replicas: ${N8N_WORKER_REPLICAS}
 
   n8n_app_webhook:
     <<: *shared
@@ -98,19 +96,38 @@ services:
     networks:
       - n8n_network
 
-  qdrant:
-    image: qdrant/qdrant
-    hostname: qdrant
-    container_name: qdrant
-    networks:
-      - n8n_network
+  # === QDRANT_SERVICES_START ===
+  # === QDRANT_SERVICES_END ===
+
+  # === NGINX_PROXY_MANAGER_SERVICES_START ===
+  npm_app:
+    image: 'jc21/nginx-proxy-manager:latest'
     restart: unless-stopped
     ports:
-      - 6333:6333
-    volumes:
-      - qdrant_storage:/qdrant/storage
+      - '80:80'
+      - '443:443'
+      - '81:81'
     environment:
-      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY}
+      DB_POSTGRES_HOST: 'npm_pgdb'
+      DB_POSTGRES_PORT: '5432'
+      DB_POSTGRES_USER: 'npm'
+      DB_POSTGRES_PASSWORD: 'npmpass'
+      DB_POSTGRES_NAME: 'npm'
+    volumes:
+      - ./npm_data:/data
+      - ./letsencrypt:/etc/letsencrypt
+    depends_on:
+      - npm_pgdb
+
+  npm_pgdb:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: 'npm'
+      POSTGRES_PASSWORD: 'npmpass'
+      POSTGRES_DB: 'npm'
+    volumes:
+      - ./npm_pgdata:/var/lib/postgresql/data
+  # === NGINX_PROXY_MANAGER_SERVICES_END ===
 
 networks:
   n8n_external:
