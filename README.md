@@ -1,9 +1,8 @@
 # 🚀 n8n Perfect Server Setup
 
 Welcome to the **n8n-perfect-server** repository!  
-This project helps you easily set up and run an [n8n](https://n8n.io) server — an extendable workflow automation tool — with Puppeteer integration, PostgreSQL, Redis, Gotenberg, and optional Qdrant vector search. It's optimized for an Ubuntu 22.04 environment.
-
-Get ready to harness the full power of n8n with custom automation, PDF generation, execution history control, secure vector database access, and more!
+This project helps you easily set up and run an [n8n](https://n8n.io) server — an extendable workflow automation tool — with Puppeteer integration, PostgreSQL, Redis, Gotenberg, and optional features like **Qdrant vector search** and **NGINX Proxy Manager**.  
+It's optimized for Ubuntu 22.04 environments and uses Docker for clean, reproducible deployments.
 
 ---
 
@@ -13,7 +12,7 @@ Before you begin, make sure you have:
 
 - ✅ Ubuntu 22.04 LTS (server recommended)
 - ✅ Basic command-line knowledge
-- ✅ Git installed (`sudo apt-get install git` if not already installed)
+- ✅ Git installed (`sudo apt install git`)
 
 ---
 
@@ -32,14 +31,17 @@ cd n8n-perfect-server
 
 ### 2. Run the Setup Script
 
-To set everything up, simply run the `build.sh` script. This script will:
+To start configuration and setup, run the `build.sh` script.
 
-- Prompt you to choose the n8n version to install (e.g. `latest`, `1.39.1`, etc.)
-- Ask for the **Webhook URL**, used for handling webhook callbacks
-- Prompt for PostgreSQL credentials (database, user, password)
-- Prompt for a Qdrant API key (optional but recommended for security)
-- Automatically write all chosen settings into the `.env` file
-- Reinstall Docker (if needed) and create the Docker image and network
+This script will:
+- Prompt for your desired **n8n version**
+- Ask for your **Webhook URL**
+- Let you configure PostgreSQL settings
+- Allow enabling/disabling **Qdrant** and **NGINX Proxy Manager**
+- Automatically update the `.env` file
+- Reinstall Docker if needed
+- Create a Docker image and network
+- Inject optional services into `docker-compose.yml` only if enabled
 
 Make the script executable and run it:
 
@@ -52,65 +54,102 @@ chmod +x build.sh
 
 ### 3. Start the n8n Server
 
-Once the build completes, start the server with:
+Once the build completes:
 
 ```bash
 chmod +x run.sh
 ./run.sh
 ```
 
-You will be asked whether to run in debug mode (foreground logs) or detached mode.
+You will be prompted to run n8n in **debug** or **detached** mode.
 
 ---
 
-## 🌐 Accessing the n8n UI
+## 🌐 Accessing n8n UI
 
-After starting the server, open your browser and navigate to:
+Open your browser and go to:
 
 ```
 http://<your-server-ip>:5678
 ```
 
-Replace `<your-server-ip>` with your server’s IP address or domain name.
-
----
-
-## 📉 Execution History Configuration
-
-n8n is configured to store execution history, which you can adjust via the `.env` file:
-
-```dotenv
-EXECUTIONS_DATA_SAVE_ON_SUCCESS=true      # Save on successful workflow runs
-EXECUTIONS_DATA_SAVE_ON_ERROR=true        # Save on errors
-EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS=true # Save manual executions
-EXECUTIONS_DATA_PRUNE=true                # Automatically delete old data
-EXECUTIONS_DATA_MAX_AGE=336               # Max age in hours (336 = 14 days)
-```
+Replace `<your-server-ip>` with your actual IP or domain.
 
 ---
 
 ## 🔐 Qdrant Vector Search (Optional)
 
-This server includes a running instance of [Qdrant](https://qdrant.tech), a vector search engine. It's secured with an API key.
+Qdrant is an optional vector search engine injected into your server if enabled during setup.
 
-To connect, include the following HTTP header:
+- Access Qdrant at:
+  ```
+  http://<your-server-ip>:6333
+  ```
 
-```http
-Authorization: ApiKey YOUR_API_KEY
-```
+- Use this header in API calls:
+  ```http
+  Authorization: ApiKey YOUR_API_KEY
+  ```
 
-The API key is set during the `build.sh` prompt and stored in `.env` as `QDRANT_API_KEY`.
+- The API key is stored in `.env` under `QDRANT_API_KEY`.
 
-Qdrant UI / API is available at:
-```
-http://<your-server-ip>:6333
+---
+
+## 🌐 NGINX Proxy Manager (Optional)
+
+You can optionally enable [NGINX Proxy Manager](https://nginxproxymanager.com) via the `build.sh` prompt.
+
+Once enabled and injected:
+- UI is available at:
+  ```
+  http://<your-server-ip>:81
+  ```
+
+- Default credentials (change on first login):
+  ```
+  Email:    admin@example.com
+  Password: changeme
+  ```
+
+Proxy Manager uses its own internal PostgreSQL container (`npm_pgdb`) and is entirely isolated.
+
+---
+
+## 🧠 Environment Configuration (`.env`)
+
+Here are some key settings stored in `.env`:
+
+```dotenv
+# n8n Configuration
+N8N_VERSION=latest
+N8N_WEBHOOK_URL=https://yourdomain.com
+
+# PostgreSQL
+DB_POSTGRESDB_DATABASE=n8n_db
+DB_POSTGRESDB_USER=n8n_db
+DB_POSTGRESDB_PASSWORD=secret123
+
+# Execution History
+EXECUTIONS_DATA_SAVE_ON_SUCCESS=all
+EXECUTIONS_DATA_SAVE_ON_ERROR=all
+EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS=true
+EXECUTIONS_DATA_PRUNE=true
+EXECUTIONS_DATA_MAX_AGE=720
+
+# Workers
+N8N_WORKER_REPLICAS=4
+
+# Optional Features
+ENABLE_QDRANT=true
+ENABLE_NGINX_PROXY_MANAGER=true
+QDRANT_API_KEY=your_secure_key_here
 ```
 
 ---
 
 ## 🧪 Example: n8n Puppeteer to Gotenberg (HTML to PDF)
 
-This is an example workflow using Puppeteer and Gotenberg for HTML to PDF conversion:
+This is an example workflow using Puppeteer and Gotenberg to convert HTML into a PDF:
 
 ```json
 {
