@@ -33,6 +33,16 @@ source ./.env
 set +a
 print_success ".env variables loaded."
 
+# === Determine correct docker compose command ===
+if docker compose version &> /dev/null; then
+  COMPOSE_CMD="docker compose"
+elif docker-compose version &> /dev/null; then
+  COMPOSE_CMD="docker-compose"
+else
+  echo "❌ Neither 'docker compose' nor 'docker-compose' is available. Please install Docker Compose."
+  exit 1
+fi
+
 # === Ensure .n8n directory exists ===
 print_section_header "📁 Preparing .n8n Directory"
 if [ ! -d ".n8n" ]; then
@@ -51,14 +61,14 @@ print_section_header "🐳 Running n8n with Docker Compose"
 echo -e "${YELLOW}❓ Do you want to run n8n in debug mode (foreground logs)?${RESET}"
 read -p "➡️  Type 'y' for debug mode or press Enter for background: " use_debug
 
-sudo docker compose down
+sudo $COMPOSE_CMD down
 
 if [[ "$use_debug" == "y" || "$use_debug" == "Y" ]]; then
   print_info "Starting n8n in DEBUG mode (foreground)..."
-  sudo docker compose up
+  sudo $COMPOSE_CMD up
 else
   print_info "Starting n8n in background (detached mode)..."
-  sudo docker compose up -d
+  sudo $COMPOSE_CMD up -d
 fi
 
 # Final permission reset
