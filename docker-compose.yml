@@ -1,5 +1,6 @@
 x-shared: &shared
   image: n8n-puppeteer:${N8N_VERSION}
+  privileged: true
   environment:
     - WEBHOOK_URL=${N8N_WEBHOOK_URL}
     - GENERIC_TIMEZONE=Europe/Bucharest
