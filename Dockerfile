@@ -26,12 +26,16 @@ COPY --from=chromium-builder /etc/ssl/certs /etc/ssl/certs
 COPY --from=chromium-builder /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu
 COPY --from=chromium-builder /lib/x86_64-linux-gnu /lib/x86_64-linux-gnu
 
-# Provide compatibility wrapper
-RUN ln -sf /usr/bin/chromium /usr/bin/chromium-browser
+# Provide compatibility wrapper and stub chromium.d to satisfy wrapper script
+RUN ln -sf /usr/bin/chromium /usr/bin/chromium-browser && \
+    mkdir -p /etc/chromium.d && echo > /etc/chromium.d/00-empty
 
-# Tell Puppeteer to use installed Chrome instead of downloading it
+# Tell Puppeteer to use the real binary (not the wrapper) and avoid downloads
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+    PUPPETEER_EXECUTABLE_PATH=/usr/lib/chromium/chromium
+
+# Ensure sandbox has correct permissions (falls back to --no-sandbox if absent)
+RUN if [ -f /usr/lib/chromium/chrome-sandbox ]; then chmod 4755 /usr.lib/chromium/chrome-sandbox || true; fi
 
 # Install n8n-nodes-puppeteer in a permanent location
 RUN mkdir -p /opt/n8n-custom-nodes && \
