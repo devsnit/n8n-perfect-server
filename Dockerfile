@@ -38,7 +38,7 @@ RUN apt-get update && \
       fonts-liberation \
       fonts-noto-color-emoji \
       fonts-freefont-ttf \
-      ttf-dejavu-core \
+      fonts-dejavu-core \
       libopus0 \
       libwebp7 \
       libjpeg62-turbo \
@@ -46,7 +46,7 @@ RUN apt-get update && \
       libopenjp2-7 \
       liblcms2-2 \
       libxslt1.1 \
-      libdav1d5 \
+      libdav1d6 \
       libvpx7 \
       libflac8 \
       libsndfile1 \
