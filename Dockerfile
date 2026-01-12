@@ -67,11 +67,11 @@ RUN apt-get update && \
 RUN ln -sf /usr/bin/chromium /usr/bin/chromium-browser && \
     mkdir -p /etc/chromium.d && echo > /etc/chromium.d/00-empty
 
-# Install n8n (official npm) and puppeteer node
+# Install n8n (official npm) and puppeteer packages for Code node + community node
 RUN npm install -g n8n@${N8N_VERSION} && \
     mkdir -p /opt/n8n-custom-nodes && \
     cd /opt/n8n-custom-nodes && \
-    npm install n8n-nodes-puppeteer && \
+    npm install puppeteer@latest puppeteer-core@latest n8n-nodes-puppeteer@latest && \
     chown -R node:node /opt/n8n-custom-nodes
 
 # Tell Puppeteer to use the installed Chromium
