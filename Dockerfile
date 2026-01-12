@@ -77,7 +77,7 @@ RUN npm install -g n8n@${N8N_VERSION} puppeteer@latest puppeteer-core@latest && 
 # Tell Puppeteer to use the installed Chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
-    NODE_PATH=/opt/n8n-custom-nodes/node_modules:/usr/local/lib/node_modules:$NODE_PATH
+    NODE_PATH=/opt/n8n-custom-nodes/node_modules:/usr/local/lib/node_modules:${NODE_PATH:-}
 
 # Ensure sandbox has correct permissions (falls back to --no-sandbox if absent)
 RUN if [ -f /usr/lib/chromium/chrome-sandbox ]; then chmod 4755 /usr/lib/chromium/chrome-sandbox || true; fi
