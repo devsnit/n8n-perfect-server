@@ -52,11 +52,13 @@ else
   print_info ".n8n directory already exists."
 fi
 
-# Set permissions (755 for directories, 644 for files, 600 for config files)
+# Set ownership to node user (UID 1000) and permissions
+# Directories: 755 (rwxr-xr-x), Files: 644 (rw-r--r--), Config files: 600 (rw-------)
+sudo chown -R 1000:1000 .n8n 2>/dev/null || sudo chown -R $(id -u):$(id -g) .n8n 2>/dev/null || true
 find .n8n -type d -exec sudo chmod 755 {} \; 2>/dev/null || true
 find .n8n -type f -name "config" -exec sudo chmod 600 {} \; 2>/dev/null || true
 find .n8n -type f ! -name "config" -exec sudo chmod 644 {} \; 2>/dev/null || true
-print_success "Permissions set for .n8n directory."
+print_success "Permissions and ownership set for .n8n directory."
 
 # === Docker Compose: Run Options ===
 print_section_header "🐳 Running n8n with Docker Compose"
@@ -73,7 +75,8 @@ else
   sudo $COMPOSE_CMD up -d
 fi
 
-# Final permission reset (755 for directories, 644 for files, 600 for config files)
+# Final permission reset (ownership to node user, 755 for directories, 644 for files, 600 for config files)
+sudo chown -R 1000:1000 .n8n 2>/dev/null || sudo chown -R $(id -u):$(id -g) .n8n 2>/dev/null || true
 find .n8n -type d -exec sudo chmod 755 {} \; 2>/dev/null || true
 find .n8n -type f -name "config" -exec sudo chmod 600 {} \; 2>/dev/null || true
 find .n8n -type f ! -name "config" -exec sudo chmod 644 {} \; 2>/dev/null || true
