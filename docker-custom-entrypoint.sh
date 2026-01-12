@@ -37,8 +37,12 @@ fi
 
 print_banner
 
-# Execute the original n8n entrypoint script
-exec /docker-entrypoint.sh "$@"
+# Execute n8n; prefer original entrypoint if present, otherwise call n8n directly
+if [ -x /docker-entrypoint.sh ]; then
+    exec /docker-entrypoint.sh "$@"
+else
+    exec n8n "$@"
+fi
 
 
 
