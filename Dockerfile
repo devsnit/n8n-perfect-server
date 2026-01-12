@@ -58,7 +58,9 @@ RUN apt-get update && \
       dbus-user-session \
       pulseaudio \
       udev \
-      ca-certificates && \
+      ca-certificates \
+      git \
+      openssh-client && \
     rm -rf /var/lib/apt/lists/*
 
 # Install n8n and puppeteer node
