@@ -1,4 +1,4 @@
-ARG N8N_VERSION=latest
+ARG N8N_VERSION=2.3.2-debian
 FROM n8nio/n8n:${N8N_VERSION}
 
 USER root
