@@ -147,6 +147,21 @@ QDRANT_API_KEY=your_secure_key_here
 
 ---
 
+## 🔄 Migration Notes
+
+### n8n v2.0: `--tunnel` Option Removed
+
+The `--tunnel` command-line option has been removed in n8n v2.0. This setup does not use the `--tunnel` option.
+
+**Migration path:** If you were previously using `--tunnel` for development or testing, switch to alternative tunneling solutions:
+- [ngrok](https://ngrok.com/)
+- [localtunnel](https://localtunnel.github.io/www/)
+- [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/)
+
+Update your workflows and documentation to reflect this change.
+
+---
+
 ## 🧪 Example: n8n Puppeteer to Gotenberg (HTML to PDF)
 
 This is an example workflow using Puppeteer and Gotenberg to convert HTML into a PDF:
