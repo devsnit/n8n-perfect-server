@@ -1,8 +1,4 @@
-FROM docker.n8n.io/n8nio/n8n
-
-USER root
-
-# Install Chromium and dependencies (Debian base image -> use apt-get)
+FROM debian:bookworm-slim AS chromium-builder
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
       chromium \
@@ -18,7 +14,19 @@ RUN apt-get update && \
       fonts-noto-color-emoji && \
     rm -rf /var/lib/apt/lists/*
 
-# Symlink chromium-browser for compatibility
+FROM docker.n8n.io/n8nio/n8n
+
+USER root
+
+# Copy Chromium and deps from builder into the n8n image (base lacks apt/apk)
+COPY --from=chromium-builder /usr/bin/chromium /usr/bin/chromium
+COPY --from=chromium-builder /usr/lib/chromium /usr/lib/chromium
+COPY --from=chromium-builder /usr/share/fonts /usr/share/fonts
+COPY --from=chromium-builder /etc/ssl/certs /etc/ssl/certs
+COPY --from=chromium-builder /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu
+COPY --from=chromium-builder /lib/x86_64-linux-gnu /lib/x86_64-linux-gnu
+
+# Provide compatibility wrapper
 RUN ln -sf /usr/bin/chromium /usr/bin/chromium-browser
 
 # Tell Puppeteer to use installed Chrome instead of downloading it
