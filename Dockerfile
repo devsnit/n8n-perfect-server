@@ -1,7 +1,11 @@
 ARG N8N_VERSION=latest
 
-# Stage 1: Debian builder installs Chromium and all deps from official repos
-FROM debian:bookworm-slim AS chromium-builder
+# Single-stage Debian base to avoid glibc/musl mismatches
+FROM node:20-bookworm-slim
+
+USER root
+
+# Install Chromium and system dependencies from official Debian repos
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
       chromium \
@@ -59,42 +63,24 @@ RUN apt-get update && \
       openssh-client && \
     rm -rf /var/lib/apt/lists/*
 
-# Stage 2: official n8n image (latest) – copy Chromium from builder
-FROM n8nio/n8n:${N8N_VERSION}
+# Symlink and stub to satisfy chromium wrapper expectations
+RUN ln -sf /usr/bin/chromium /usr/bin/chromium-browser && \
+    mkdir -p /etc/chromium.d && echo > /etc/chromium.d/00-empty
 
-USER root
+# Install n8n (official npm) and puppeteer node
+RUN npm install -g n8n@${N8N_VERSION} && \
+    mkdir -p /opt/n8n-custom-nodes && \
+    cd /opt/n8n-custom-nodes && \
+    npm install n8n-nodes-puppeteer && \
+    chown -R node:node /opt/n8n-custom-nodes
 
-# Copy Chromium runtime from builder to n8n image
-COPY --from=chromium-builder /usr/bin/chromium /usr/bin/chromium
-COPY --from=chromium-builder /usr/bin/chromium /usr/bin/chromium-browser
-COPY --from=chromium-builder /usr/lib/ /usr/lib/
-COPY --from=chromium-builder /lib/ /lib/
-COPY --from=chromium-builder /usr/share/fonts/ /usr/share/fonts/
-COPY --from=chromium-builder /etc/ssl/certs/ /etc/ssl/certs/
-COPY --from=chromium-builder /etc/chromium/ /etc/chromium/
-COPY --from=chromium-builder /etc/fonts/ /etc/fonts/
-
-# Stub chromium.d to satisfy wrapper expectations
-RUN mkdir -p /etc/chromium.d && echo > /etc/chromium.d/00-empty
-
-# Tell Puppeteer to use the real binary (not the wrapper) and avoid downloads
+# Tell Puppeteer to use the installed Chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
+    NODE_PATH=/opt/n8n-custom-nodes/node_modules:$NODE_PATH
 
 # Ensure sandbox has correct permissions (falls back to --no-sandbox if absent)
 RUN if [ -f /usr/lib/chromium/chrome-sandbox ]; then chmod 4755 /usr/lib/chromium/chrome-sandbox || true; fi
-
-# Install n8n-nodes-puppeteer in a permanent location (official npm)
-RUN mkdir -p /opt/n8n-custom-nodes && \
-    cd /opt/n8n-custom-nodes && \
-    npm install n8n-nodes-puppeteer && \
-    chown -R node:node /opt/n8n-custom-nodes
-
-# Install n8n-nodes-puppeteer in a permanent location
-RUN mkdir -p /opt/n8n-custom-nodes && \
-    cd /opt/n8n-custom-nodes && \
-    npm install n8n-nodes-puppeteer && \
-    chown -R node:node /opt/n8n-custom-nodes
 
 # Copy our custom entrypoint
 COPY docker-custom-entrypoint.sh /docker-custom-entrypoint.sh
