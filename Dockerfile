@@ -48,7 +48,7 @@ RUN apt-get update && \
       libxslt1.1 \
       libdav1d6 \
       libvpx7 \
-      libflac8 \
+      libflac12 \
       libsndfile1 \
       libdouble-conversion3 \
       dbus-user-session \
