@@ -52,8 +52,10 @@ else
   print_info ".n8n directory already exists."
 fi
 
-# Set permissions
-sudo chmod 777 -R .n8n
+# Set permissions (755 for directories, 644 for files, 600 for config files)
+find .n8n -type d -exec sudo chmod 755 {} \; 2>/dev/null || true
+find .n8n -type f -name "config" -exec sudo chmod 600 {} \; 2>/dev/null || true
+find .n8n -type f ! -name "config" -exec sudo chmod 644 {} \; 2>/dev/null || true
 print_success "Permissions set for .n8n directory."
 
 # === Docker Compose: Run Options ===
@@ -71,6 +73,8 @@ else
   sudo $COMPOSE_CMD up -d
 fi
 
-# Final permission reset
-sudo chmod 777 -R .n8n
+# Final permission reset (755 for directories, 644 for files, 600 for config files)
+find .n8n -type d -exec sudo chmod 755 {} \; 2>/dev/null || true
+find .n8n -type f -name "config" -exec sudo chmod 600 {} \; 2>/dev/null || true
+find .n8n -type f ! -name "config" -exec sudo chmod 644 {} \; 2>/dev/null || true
 print_success "n8n is up and running! 🎉"

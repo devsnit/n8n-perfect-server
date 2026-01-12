@@ -60,7 +60,9 @@ RUN apt-get update && \
       udev \
       ca-certificates \
       git \
-      openssh-client && \
+      openssh-client \
+      python3 \
+      python3-pip && \
     rm -rf /var/lib/apt/lists/*
 
 # Symlink and stub to satisfy chromium wrapper expectations

@@ -147,6 +147,24 @@ QDRANT_API_KEY=your_secure_key_here
 
 ---
 
+## 🔧 Troubleshooting
+
+### Redis Memory Overcommit Warning
+
+If you see a Redis warning about memory overcommit, you can fix it by enabling memory overcommit on your host system:
+
+```bash
+# Add to /etc/sysctl.conf
+echo "vm.overcommit_memory = 1" | sudo tee -a /etc/sysctl.conf
+
+# Apply immediately (or reboot)
+sudo sysctl vm.overcommit_memory=1
+```
+
+This prevents Redis background saves or replication from failing under low memory conditions.
+
+---
+
 ## 🔄 Migration Notes
 
 ### n8n v2.0: `--tunnel` Option Removed
