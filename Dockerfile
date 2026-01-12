@@ -1,36 +1,67 @@
-FROM debian:bookworm-slim AS chromium-builder
+ARG N8N_VERSION=latest
+FROM n8nio/n8n:${N8N_VERSION}
+
+USER root
+
+# Install Chromium and all needed system libraries (Debian base with apt)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
       chromium \
       chromium-common \
       libnss3 \
+      libnspr4 \
       libglib2.0-0 \
-      libfreetype6 \
-      libharfbuzz0b \
-      ca-certificates \
-      fonts-freefont-ttf \
-      udev \
+      libatk1.0-0 \
+      libatk-bridge2.0-0 \
+      libcups2 \
+      libdrm2 \
+      libxkbcommon0 \
+      libatspi2.0-0 \
+      libx11-6 \
+      libx11-xcb1 \
+      libxcb1 \
+      libxcomposite1 \
+      libxcursor1 \
+      libxdamage1 \
+      libxi6 \
+      libxtst6 \
+      libxrandr2 \
+      libasound2 \
+      libpango-1.0-0 \
+      libpangocairo-1.0-0 \
+      libgtk-3-0 \
+      libxss1 \
+      libxshmfence1 \
+      libgbm1 \
+      libxext6 \
+      libxfixes3 \
+      libxrender1 \
+      libfontconfig1 \
       fonts-liberation \
-      fonts-noto-color-emoji && \
+      fonts-noto-color-emoji \
+      fonts-freefont-ttf \
+      ttf-dejavu-core \
+      libopus0 \
+      libwebp7 \
+      libjpeg62-turbo \
+      libpng16-16 \
+      libopenjp2-7 \
+      liblcms2-2 \
+      libxslt1.1 \
+      libdav1d5 \
+      libvpx7 \
+      libflac8 \
+      libsndfile1 \
+      libdouble-conversion3 \
+      dbus-user-session \
+      pulseaudio \
+      udev \
+      ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-FROM docker.n8n.io/n8nio/n8n
-
-USER root
-
-# Copy Chromium and ALL dependencies from builder into the n8n image
-# (base image has no package manager, so we vendor the full tree)
-COPY --from=chromium-builder /usr/bin/chromium /usr/bin/chromium
-COPY --from=chromium-builder /usr/bin/chromium /usr/bin/chromium-browser
-COPY --from=chromium-builder /usr/lib/ /usr/lib/
-COPY --from=chromium-builder /lib/ /lib/
-COPY --from=chromium-builder /usr/share/fonts/ /usr/share/fonts/
-COPY --from=chromium-builder /etc/ssl/certs/ /etc/ssl/certs/
-COPY --from=chromium-builder /etc/chromium/ /etc/chromium/
-COPY --from=chromium-builder /etc/fonts/ /etc/fonts/
-
-# Stub chromium.d to satisfy wrapper expectations
-RUN mkdir -p /etc/chromium.d && echo > /etc/chromium.d/00-empty
+# Provide compatibility wrapper and stub chromium.d to satisfy wrapper script
+RUN ln -sf /usr/bin/chromium /usr/bin/chromium-browser && \
+    mkdir -p /etc/chromium.d && echo > /etc/chromium.d/00-empty
 
 # Tell Puppeteer to use the real binary (not the wrapper) and avoid downloads
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
