@@ -5,6 +5,8 @@ x-shared: &shared
     - WEBHOOK_URL=${N8N_WEBHOOK_URL}
     - GENERIC_TIMEZONE=Europe/Bucharest
     - NODE_ENV=production
+    - N8N_ENVIRONMENT=production
+    - N8N_RELEASE_TYPE=stable
     - N8N_ENCRYPTION_KEY=LnGMcaSProKXaI5PzXA0N8sLxJ3P2X17
     - N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE=true
     - NODE_OPTIONS=--max-old-space-size=2048
